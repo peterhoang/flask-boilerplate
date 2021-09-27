@@ -67,10 +67,29 @@ coverage report
 coverage html
 ```
 
+## Docker
+
+Build the image
+
+```console
+docker build -t myapp .
+```
+
+Run image in development mode
+
+```console
+docker run -dp 5000:5000 -v "$(pwd):/app" -v "$(pwd)/instance:/app/instance" myapp
+```
+
+Open swagger landing page in browser
+
+```
+http://localhost:5000/api
+```
+
 ## Improvements
 
 - Logging
 - Integrate ORM package/library
 - Cacheing
 - Different DB
-- Dockerize
