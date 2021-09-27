@@ -52,6 +52,12 @@ Run the app
 flask run
 ```
 
+Swagger landing page
+
+```
+http://localhost:5000/api
+```
+
 Unit tests and coverage
 
 ```console
@@ -60,3 +66,11 @@ coverage run -m pytest
 coverage report
 coverage html
 ```
+
+## Improvements
+
+- Logging
+- Integrate ORM package/library
+- Cacheing
+- Different DB
+- Dockerize
