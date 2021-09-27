@@ -50,16 +50,13 @@ def create_app(test_config=None):
 
     # load blueprints and myapp namespaces
     from .apis.auth import auth, api as auth_ns1
-    from .apis.post import post, api as post_ns1
 
     blueprint = Blueprint("api", __name__)
     api = Api(blueprint)
     app.register_blueprint(blueprint, url_prefix="/api")
     app.register_blueprint(auth)
-    app.register_blueprint(post)
 
     api.add_namespace(auth_ns1, path="/v1/auth")
-    api.add_namespace(post_ns1, path="/v1/post")
 
     # load JWT stuff
     jwt = JWTManager(app)
