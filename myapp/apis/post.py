@@ -1,6 +1,6 @@
 import json
 from flask import jsonify, make_response, Blueprint
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields, reqparse, inputs
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import current_user
 from werkzeug.exceptions import abort
@@ -19,6 +19,13 @@ post_model = api.model(
         "body": fields.String(required=True, description="The body of the post"),
     },
 )
+
+parser = reqparse.RequestParser()
+parser.add_argument("lastdate", required=False, type=inputs.date_from_iso8601)
+parser.add_argument("firstdate", required=False, type=inputs.date_from_iso8601)
+parser.add_argument("limit", required=False, type=int)
+
+DEFAULT_LIMIT = 5
 
 
 @api.route("/")
@@ -61,6 +68,32 @@ class Post(Resource):
             return make_response(jsonify(msg="Internal Server Error"), 500)
 
         return make_response(jsonify(msg="Post successfully created."), 201)
+
+
+@api.route("/filter")
+class Filter(Resource):
+    @api.expect(parser)
+    def get(self):
+        args = parser.parse_args()
+        lastdate = args["lastdate"]
+        firstdate = args["firstdate"]
+        limit = DEFAULT_LIMIT
+        if args["limit"] is not None:
+            limit = args["limit"]
+        db = get_db()
+
+        rows = None
+        if lastdate is not None:
+            rows = db.execute(
+                "Select * From post Where created > ?" " Order By created" " Limit ?", (lastdate, limit)
+            ).fetchall()
+
+        if firstdate is not None:
+            rows = db.execute(
+                "Select * From post Where created < ?" " Order By created Desc" " Limit ?", (firstdate, limit)
+            ).fetchall()
+
+        return make_response(json.dumps([dict(row) for row in rows], indent=2, default=str))
 
 
 @api.route("/<id>")

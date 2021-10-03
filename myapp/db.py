@@ -1,8 +1,7 @@
-import sqlite3
-
-import click
+import sqlite3, datetime, click, random
 from flask import current_app, g
 from flask.cli import with_appcontext
+from werkzeug.security import generate_password_hash
 
 
 def get_db():
@@ -35,6 +34,23 @@ def init_db_command():
     click.echo("Initialized the database.")
 
 
+@click.command("inject-dummy-data")
+@with_appcontext
+def inject_dummy_data():
+    """Injecting some dummy data"""
+    db = get_db()
+
+    db.execute("Insert Into user (username, password) values (?, ?)", ("test", generate_password_hash("test")))
+
+    for i in range(100):
+        title = f"test title {i}"
+        body = f"test body body body {i}"
+        created = datetime.datetime(2021, (i % 11) + 1, random.randrange(1, 28))
+        db.execute("Insert Into post (title, body, author_id, created) values (?, ?, ?, ?)", (title, body, 1, created))
+    db.commit()
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+    app.cli.add_command(inject_dummy_data)
