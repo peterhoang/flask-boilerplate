@@ -42,7 +42,7 @@ def inject_dummy_data():
 
     db.execute("Insert Into user (username, password) values (?, ?)", ("test", generate_password_hash("test")))
 
-    for i in range(100):
+    for i in range(20):
         title = f"test title {i}"
         body = f"test body body body {i}"
         created = datetime.datetime(2021, (i % 11) + 1, random.randrange(1, 28))

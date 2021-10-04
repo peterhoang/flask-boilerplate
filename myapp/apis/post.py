@@ -1,4 +1,3 @@
-import json
 from flask import jsonify, make_response, Blueprint
 from flask_restx import Namespace, Resource, fields, reqparse, inputs
 from flask_jwt_extended import jwt_required
@@ -40,8 +39,7 @@ class Post(Resource):
             " Order By created Desc"
         ).fetchall()
 
-        result = json.dumps([dict(row) for row in posts], indent=2, default=str)
-        return make_response(result, 200)
+        return make_response(jsonify([dict(row) for row in posts]), 200)
 
     @api.doc(
         description="Create new post for user",
@@ -93,23 +91,31 @@ class Filter(Resource):
                 "Select * From post Where created < ?" " Order By created Desc" " Limit ?", (firstdate, limit)
             ).fetchall()
 
-        return make_response(json.dumps([dict(row) for row in rows], indent=2, default=str))
+        return make_response(jsonify([dict(row) for row in rows]))
 
 
 @api.route("/<id>")
 @api.doc(params={"id": "Id the post"}, security="Bearer")
 class PostResource(Resource):
-    @jwt_required()
     def get(self, id):
         db = get_db()
-        post = db.execute(
-            "Select p.id, title, body, created, author_id, parent_id, username"
-            " From post p Join user u On p.author_id = u.id"
-            " Where p.id = ?",
-            (id,),
-        ).fetchone()
 
-        return make_response(jsonify(dict(post)), 200)
+        rows = db.execute(
+            "WITH RECURSIVE cte_post (id, title, body, created, author_id, parent_id) AS ("
+            " Select id, title, body, created, author_id, parent_id"
+            "   From post"
+            "   Where id = ?"
+            "   UNION ALL"
+            "   SELECT p.id, p.title, p.body, p.created, p.author_id, p.parent_id"
+            "   FROM post p"
+            "   JOIN cte_post c ON c.id = p.parent_id"
+            ")"
+            "Select p.id, title, body, created, author_id, parent_id, username"
+            " From cte_post p Join user u On p.author_id = u.id",
+            (id,),
+        ).fetchall()
+
+        return make_response(jsonify([dict(row) for row in rows]))
 
     @api.expect(post_model)
     @jwt_required()

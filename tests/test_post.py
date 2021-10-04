@@ -35,8 +35,11 @@ def test_post_create(client, app, headers):
 
 def test_get_post_by_id(client, headers):
     response = client.get("/api/v1/post/1", headers=headers)
+    json_data = response.get_json()
     assert response.status_code == 200
     assert b"test title" in response.data
+    assert len(json_data) == 1
+    assert json_data[0]["title"] == "test title"
 
 
 def test_update_post(app, client, headers):
