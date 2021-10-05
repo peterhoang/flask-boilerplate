@@ -5,20 +5,6 @@ from flask_jwt_extended import JWTManager
 from . import db
 
 
-def user_identity_lookup(user):
-    return user["id"]
-
-
-def user_lookup_callback(_jwt_header, jwt_data):
-    identity = jwt_data["sub"]
-    userDto = db.get_db().execute("Select * From user Where id = ?", (identity,)).fetchone()
-    userObj = None
-    if userDto is not None:
-        userDict = dict(userDto)
-        userObj = {"id": userDict["id"], "username": userDict["username"]}
-    return userObj
-
-
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -48,6 +34,13 @@ def create_app(test_config=None):
 
     db.init_app(app)
 
+    register_blueprints(app)
+    register_jwt(app)
+
+    return app
+
+
+def register_blueprints(app):
     # load blueprints and myapp namespaces
     from .apis.auth import auth, api as auth_ns1
     from .apis.post import post, api as post_ns1
@@ -61,10 +54,24 @@ def create_app(test_config=None):
     api.add_namespace(auth_ns1, path="/v1/auth")
     api.add_namespace(post_ns1, path="/v1/post")
 
+
+def register_jwt(app):
     # load JWT stuff
     jwt = JWTManager(app)
 
     jwt.user_identity_loader(user_identity_lookup)
     jwt.user_lookup_loader(user_lookup_callback)
 
-    return app
+
+def user_identity_lookup(user):
+    return user["id"]
+
+
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    userDto = db.get_db().execute("Select * From user Where id = ?", (identity,)).fetchone()
+    userObj = None
+    if userDto is not None:
+        userDict = dict(userDto)
+        userObj = {"id": userDict["id"], "username": userDict["username"]}
+    return userObj

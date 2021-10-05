@@ -89,7 +89,6 @@ http://localhost:5000/api
 
 ## Improvements
 
-- Logging
 - Integrate ORM package/library
 - Cacheing
-- Different DB
+- Alternative DB
