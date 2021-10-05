@@ -1,13 +1,4 @@
-import json
-import pytest
 from myapp.db import get_db
-
-
-@pytest.fixture
-def headers(auth):
-    response = auth.login()
-    token = json.loads(response.data)
-    return {"Authorization": "Bearer {}".format(token["access_token"])}
 
 
 def test_post_getall(client):

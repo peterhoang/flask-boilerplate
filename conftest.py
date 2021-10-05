@@ -1,7 +1,7 @@
 import os
 import tempfile
-
 import pytest
+import json
 from myapp import create_app
 from myapp.db import get_db, init_db
 
@@ -53,3 +53,10 @@ class AuthActions(object):
 @pytest.fixture
 def auth(client):
     return AuthActions(client)
+
+
+@pytest.fixture
+def headers(auth):
+    response = auth.login()
+    token = json.loads(response.data)
+    return {"Authorization": "Bearer {}".format(token["access_token"])}
