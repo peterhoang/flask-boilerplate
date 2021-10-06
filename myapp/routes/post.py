@@ -1,4 +1,4 @@
-from flask import jsonify, make_response, Blueprint
+from flask import jsonify, make_response, Blueprint, request
 from flask_restx import Namespace, Resource, fields, reqparse, inputs
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import current_user
@@ -115,6 +115,9 @@ class PostResource(Resource):
             (id,),
         ).fetchall()
 
+        if len(rows) == 0:
+            return make_response(jsonify(msg="Not found."), 404)
+
         return make_response(jsonify([dict(row) for row in rows]))
 
     @api.expect(post_model)
@@ -149,6 +152,7 @@ class PostResource(Resource):
         db = get_db()
         try:
             db.execute("Delete From post Where id = ? and author_id = ?", (id, userId))
+            db.execute("Delete From post Where parent_id = ?", (id,))
             db.commit()
         except db.DatabaseError as err:
             # todo: log err
