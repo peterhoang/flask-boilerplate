@@ -42,8 +42,8 @@ def create_app(test_config=None):
 
 def register_blueprints(app):
     # load blueprints and myapp namespaces
-    from .apis.auth import auth, api as auth_ns1
-    from .apis.post import post, api as post_ns1
+    from .routes.auth import auth, api as auth_ns1
+    from .routes.post import post, api as post_ns1
 
     blueprint = Blueprint("api", __name__)
     api = Api(blueprint)
